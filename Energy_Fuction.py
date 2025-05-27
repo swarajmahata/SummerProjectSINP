@@ -8,6 +8,7 @@ import sys
 dict_masses = [0.1, 0.5, 1.0, 5.0, 10.0]  # GeV
 sigma_n = 1e-36  # 1 pb in cm^2
 
+
 # Physical constants
 c = 3.0e8  # speed of light (m/s)
 hbar_c = 197.3e-15  # GeV·m
