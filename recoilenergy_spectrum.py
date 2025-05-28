@@ -24,6 +24,16 @@ v_esc = 544e3 # m/s
 A = float(sys.argv[1])
 m_A_GeV = float(sys.argv[2])
 particle = str(sys.argv[3])
+multiplier = 0
+if particle=="Hydrogen":
+    multiplier = 0.02
+elif particle=="Carbon":
+    multiplier=0.235
+elif particle=="Fluorine":
+    multiplier=0.745
+else:
+    print("wrong particle entered, aborting")
+    exit()
 m_A = m_A_GeV * GeV_to_keV
 
 # Reduced mass in kg
@@ -47,7 +57,7 @@ def N():
 
 
 
-def F2(E_R_keV, A=12):
+def F2(E_R_keV):
     import numpy as np
     from scipy.special import spherical_jn
 
@@ -101,7 +111,7 @@ def dR_dE(E_R_keV, m_x_kg):
     sigma_A = sigma_n * 1e-4 * A**2 * (mu_xA / mu_xn)**2  # cm2->m2
     coeff = (1 / np.sqrt(np.pi) * (N0 / A) * (rho_0 * m_A * sigma_A)) / (m_x_kg * mu_xA**2 * v0)  # /s units
     # convert to per day: *86400
-    return coeff * 86400 * F2(E_R_keV) * eta(v_min(E_R_keV, m_x_kg))
+    return multiplier*coeff * 86400 * F2(E_R_keV) * eta(v_min(E_R_keV, m_x_kg))
 
 # Plot
 E_R = np.logspace(-3, 1, 500)
