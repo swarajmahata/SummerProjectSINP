@@ -36,7 +36,7 @@ def v_min(E_R_keV, m_x_kg):
 
 # Simple form factor for hydrogen (F=1)
 def F2(_):
-    return 0.020
+    return 3.0
 
 # Velocity integral η(vmin)
 def eta(vmin):
