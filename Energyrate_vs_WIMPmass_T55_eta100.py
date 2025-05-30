@@ -45,7 +45,7 @@ def hydrogen_eff(E_ratio):
 # --- Efficiency assignment ---
 eff_functions = {
     "H": hydrogen_eff,
-    "C": make_eff_func(*load_csv_unique("Bubble Nucleation efficiency vs E_R_E_Rth.csv")),
+    "C": make_eff_func(*load_csv_unique("Bubble Nucleation Efficiency_Carbon.csv")),
     "F": make_eff_func(*load_csv_unique("Bubble Nucleation Efficiency_Flurin.csv"))
 }
 
@@ -119,6 +119,7 @@ plt.yscale("log")
 plt.xlim(0.2, 2.0)
 plt.ylim(1, 1e5)
 plt.grid(True)
+plt.title("eta=100 T=55")
 plt.legend()
 plt.tight_layout()
 plt.savefig("Rate_vs_Mass_FIG7_reproduction.png")

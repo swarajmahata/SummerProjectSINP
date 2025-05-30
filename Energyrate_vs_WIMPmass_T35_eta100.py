@@ -45,7 +45,7 @@ def make_eff_func(x_eff, y_eff, label):
 
 # --- Target-specific files ---
 efficiency_files = {
-    "C": "Bubble Nucleation efficiency vs E_R_E_Rth.csv",
+    "C": "Bubble Nucleation Efficiency_Carbon.csv",
     "F": "Bubble Nucleation Efficiency_Flurin.csv"
 }
 
@@ -145,6 +145,7 @@ plt.yscale("log")
 plt.xlim(2.0, 5.0)
 plt.ylim(0.1, 1e4)
 plt.grid(True)
+plt.title("eta = 100 T=35")
 plt.legend()
 plt.tight_layout()
 plt.savefig("Rate_vs_Mass_Log_Scaled.png")
