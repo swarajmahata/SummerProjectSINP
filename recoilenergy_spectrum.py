@@ -128,5 +128,14 @@ plt.yscale('log')
 plt.title(r'$\sigma_{\chi n}=1\ \mathrm{pb}$. '+particle)
 plt.legend(title='Mass')
 plt.tight_layout()
-plt.savefig(particle+"_spectrum.png")
+
+# --- Axis ticks ---
+plt.tick_params(axis='both', which='both', direction='in', top=True, right=True)
+plt.minorticks_on()
+plt.tick_params(axis='both', which='minor', length=4, color='gray')
+plt.tick_params(axis='both', which='major', length=7)
+
+plt.savefig("Recoil Energy.png")
 plt.show()
+
+

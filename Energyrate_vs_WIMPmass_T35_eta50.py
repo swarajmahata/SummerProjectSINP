@@ -117,5 +117,14 @@ plt.title("T = 55$^\circ$C, $\eta_T$ = 100%, $E_{th}$ = 3.84 keV")
 plt.grid(True)
 plt.legend()
 plt.tight_layout()
-plt.savefig("EventRate_T55_Eth3.84.png")
+
+
+# --- Axis ticks ---
+plt.tick_params(axis='both', which='both', direction='in', top=True, right=True)
+plt.minorticks_on()
+plt.tick_params(axis='both', which='minor', length=4, color='gray')
+plt.tick_params(axis='both', which='major', length=7)
+
+plt.savefig("Event Rate.png")
 plt.show()
+

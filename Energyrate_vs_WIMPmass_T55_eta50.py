@@ -149,5 +149,14 @@ plt.grid(True)
 plt.title("eta=50 T=55")
 plt.legend()
 plt.tight_layout()
-plt.savefig("Rate_vs_Mass_MatchedPlot.png")
+
+# --- Axis ticks ---
+plt.tick_params(axis='both', which='both', direction='in', top=True, right=True)
+plt.minorticks_on()
+plt.tick_params(axis='both', which='minor', length=4, color='gray')
+plt.tick_params(axis='both', which='major', length=7)
+
+plt.savefig("Event Rate.png")
 plt.show()
+
+
