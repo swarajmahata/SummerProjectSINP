@@ -15,7 +15,8 @@ rho_0 = (0.3 * (1e6 / c**2)) / (1e-2)**3
 v0 = 220e3
 v_E = 232e3
 v_esc = 544e3
-E_R_th = 0.19  # keV
+E_R_th_default = 0.19  # keV
+E_R_th_seitz = 1.92    # keV
 
 # --- CSV loader ---
 def load_csv_unique(filename):
@@ -76,50 +77,61 @@ targets = {
     "F": {"A": 19, "m_A_GeV": 19, "multiplier": 0.745, "style": '--'}
 }
 
-# --- Compute rates ---
-m_x_vals = np.linspace(0.2, 2.0, 100)
-rates = {key: [] for key in targets}
-rates["Total"] = []
+# --- Function to compute total rates ---
+def compute_total_rates(E_R_th):
+    rates = []
+    for m_x_GeV in m_x_vals:
+        m_x_kg = m_x_GeV * GeV_to_keV
+        total_rate = 0
+        for key, props in targets.items():
+            A, m_A = props["A"], props["m_A_GeV"] * GeV_to_keV
+            mu_xA = mu_kg(m_x_kg, m_A)
+            mu_xn = mu_kg(m_x_kg, 1 * GeV_to_keV)
+            sigma_A = sigma_n * 1e-4 * A**2 * (mu_xA / mu_xn)**2
+            coeff = (1 / np.sqrt(np.pi) * (N0 / A) * (rho_0 * m_A * sigma_A)) / (m_x_kg * mu_xA**2 * v0)
+            E_R_max = (2 * m_A * m_x_kg**2 * v_esc**2) / (m_A + m_x_kg)**2
 
-for m_x_GeV in m_x_vals:
-    m_x_kg = m_x_GeV * GeV_to_keV
-    total_rate = 0
-    for key, props in targets.items():
-        A, m_A = props["A"], props["m_A_GeV"] * GeV_to_keV
-        mu_xA = mu_kg(m_x_kg, m_A)
-        mu_xn = mu_kg(m_x_kg, 1 * GeV_to_keV)
-        sigma_A = sigma_n * 1e-4 * A**2 * (mu_xA / mu_xn)**2
-        coeff = (1 / np.sqrt(np.pi) * (N0 / A) * (rho_0 * m_A * sigma_A)) / (m_x_kg * mu_xA**2 * v0)
-        E_R_max = (2 * m_A * m_x_kg**2 * v_esc**2) / (m_A + m_x_kg)**2
+            if E_R_max < E_R_th:
+                rate = 0
+            else:
+                def integrand(E_R):
+                    E_ratio = E_R / E_R_th
+                    eff = eff_functions[key](E_ratio)
+                    return eff * props["multiplier"] * coeff * 86400 * F2(E_R, A) * eta(v_min(E_R, m_x_kg, m_A))
+                rate, _ = quad(integrand, E_R_th, E_R_max, limit=500, epsabs=1e-6, epsrel=1e-4)
 
-        if E_R_max < E_R_th:
-            rate = 0
-        else:
-            def integrand(E_R):
-                E_ratio = E_R / E_R_th
-                eff = eff_functions[key](E_ratio)
-                return eff * props["multiplier"] * coeff * 86400 * F2(E_R, A) * eta(v_min(E_R, m_x_kg, m_A))
-            rate, _ = quad(integrand, E_R_th, E_R_max, limit=200)
+            total_rate += rate
+        rates.append(total_rate)
+    return rates
 
-        rates[key].append(rate)
-        total_rate += rate
-    rates["Total"].append(total_rate)
+# --- Mass range ---
+m_x_vals = np.linspace(0.2, 5.0, 200)
 
-# --- Compute sigma limits ---
+# --- Compute for both thresholds ---
+rates_default = compute_total_rates(E_R_th_default)
+rates_seitz = compute_total_rates(E_R_th_seitz)
+
+# --- Exposure ---
 exposure = 1000  # kg.day
-sigma_limits_pb = [2.3 / (R * exposure) if R > 0 else np.nan for R in rates["Total"]]
+sigma_limits_default = [2.3 / (R * exposure) if R > 0 else np.nan for R in rates_default]
+sigma_limits_seitz = [2.3 / (R * exposure) if R > 0 else np.nan for R in rates_seitz]
 
-# --- Plot sigma upper limits ---
+# --- Print Rexp values ---
+for m_x, R in zip(m_x_vals, rates_default):
+    print(f"Mass: {m_x:.2f} GeV, R_exp (0.19 keV): {R:.4e} kg^-1 day^-1")
+
+# --- Plot ---
 plt.figure()
-plt.plot(m_x_vals, sigma_limits_pb, linestyle='--', color='black', label=r"$T = 55^\circ$C, $\eta_T = 100\%$")
+plt.plot(m_x_vals, sigma_limits_default, linestyle='--', color='black', label=r"$E_{{R,\mathrm{{th}}}}=0.19$ keV")
+plt.plot(m_x_vals, sigma_limits_seitz, linestyle='-', color='red', label=r"$E_{{R,\mathrm{{th}}}}=1.92$ keV (Seitz)")
 plt.xlabel("Mass (GeV)")
-plt.ylabel(r"$\sigma^{\text{SI}}_{\chi,n,90}$ (pb)")
+plt.ylabel(r"$\sigma^{\mathrm{SI}}_{\chi,n,90}$ (pb)")
 plt.yscale("log")
 plt.xlim(0, 5)
 plt.ylim(1e-9, 1e-1)
 plt.grid(True)
-plt.title("90% C.L. Poisson Upper Limit\n$T = 55^\circ$C, $\eta_T = 100\%$, Exposure = 1000 kg.day")
+plt.title(r"90% C.L. Poisson Upper Limit\n$T = 55^\circ$C, $\eta_T = 100\%$, Exposure = 1000 kg.day")
 plt.legend()
 plt.tight_layout()
-plt.savefig("UpperLimit_vs_Mass_T55_eta100.png")
+plt.savefig("UpperLimit_vs_Mass_T55_eta100_Seitz.png")
 plt.show()
