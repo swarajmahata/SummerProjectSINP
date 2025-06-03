@@ -141,5 +141,5 @@ plt.minorticks_on()
 plt.tick_params(axis='both', which='minor', length=4, color='gray')
 plt.tick_params(axis='both', which='major', length=7)
 
-plt.savefig("Cross section.png")
+plt.savefig("Cross section 1.png")
 plt.show()
