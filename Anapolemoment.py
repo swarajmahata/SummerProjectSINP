@@ -27,7 +27,7 @@ mass_c = 0.1916
 mass_f = 0.8084
 rate_c = DMU.dRdE_anapole(E_list, m_x, g_a, "C12") * mass_c
 rate_f = DMU.dRdE_anapole(E_list, m_x, g_a, "F19") * mass_f
-rate_c3f8 = rate_c + rate_f
+rate_c3f8 =  rate_c +  rate_f
 rate_c3f8[rate_c3f8 < 1e-15] = np.nan
 pl.loglog(E_list, rate_c3f8, lw=2, label='C₃F₈', color='red')
 
@@ -50,7 +50,8 @@ ax.set_ylim(1e-8, None)  # y-axis starts at 10^-8
 ax.yaxis.set_minor_locator(LogLocator(base=10.0, subs=np.arange(2, 10)*0.1, numticks=100))
 ax.tick_params(axis='y', which='minor', length=4, width=0.8)
 ax.tick_params(axis='y', which='major', length=6, width=1.2)
-
+pl.title("anapolemoment")
 pl.tight_layout()
-pl.savefig("anapole_spectrum_clean_limited.png")
+
+pl.savefig("anapolemoment")
 pl.show()

@@ -52,6 +52,7 @@ ax.set_yscale('log')
 ax.yaxis.set_minor_locator(LogLocator(base=10.0, subs=np.arange(2, 10)*0.1, numticks=100))
 ax.tick_params(axis='y', which='minor', length=4, width=0.8)
 ax.tick_params(axis='y', which='major', length=6, width=1.2)
-pl.savefig("plot plot3.png")
+pl.title("Milicharge")
+pl.savefig("Milicharge.png")
 pl.show()
 
