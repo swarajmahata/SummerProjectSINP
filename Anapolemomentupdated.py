@@ -20,7 +20,7 @@ def dRdE_anapole_spin_corrected(E, m_x, c_A, target):
     cn = np.zeros(20)
 
     #Operator 8
-    cp[7] = -2.5*e*c_A
+    cp[7] = -2.0*e*c_A
     
     
     
