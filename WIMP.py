@@ -1,57 +1,58 @@
 import numpy as np
-import matplotlib.pyplot as pl
-import WIMpy.DMUtils as DMU
-from matplotlib.ticker import LogLocator
+import matplotlib.pyplot as plt
+from scipy.integrate import quad
+import WIMpy.DMUtils as DMU  # Make sure WIMpy is installed
 
-# DM parameters
-g_a = 3.6e-8  # Anapole moment coupling [GeV^-2]
-m_x = 5.0     # DM mass in GeV
+# --- Parameters ---
+threshold = 2.45     # keV
+exposure = 1404      # kg-day
+eps0 = 2.2e-8        # reference millicharge for spectrum calculation (to scale from)
 
-# Recoil energy range [keV]
-E_list = np.logspace(-0.5, 1.2, 100)
+# --- Mass fractions for C₃F₈ ---
+mass_f = 0.8084 * 52  # F19 fraction
+mass_c = 0.1916 * 52  # C12 fraction
 
-# --- C3F8 composition ---
-mass_c = 0.1916
-mass_f = 0.8084
+# --- Mass range ---
+m_x_vals = np.logspace(0, 3, 300)  # 1 GeV to 1000 GeV
 
-# --- Compute differential rates ---
-rate_xe = DMU.dRdE_anapole(E_list, m_x, g_a, "Xe131")
-rate_ar = DMU.dRdE_anapole(E_list, m_x, g_a, "Ar40")
-rate_c = DMU.dRdE_anapole(E_list, m_x, g_a, "C12") * mass_c
-rate_f = DMU.dRdE_anapole(E_list, m_x, g_a, "F19") * mass_f
-rate_c3f8 = rate_c + rate_f
+# --- Calculate sigma with fixed eps0, then scale to get eps limits ---
+sigma_vals = []
 
-# --- Print differential rates ---
-print("Energy [keV]  |  dR/dE (Xenon)  |  dR/dE (Argon)  |  dR/dE (C₃F₈)")
-print("-" * 70)
-for i in range(len(E_list)):
-    print(f"{E_list[i]:.4f}        {rate_xe[i]:.4e}     {rate_ar[i]:.4e}     {rate_c3f8[i]:.4e}")
+for m_x in m_x_vals:
+    try:
+        def integrand(E):
+            dRdE_f = DMU.dRdE_millicharge(E, m_x, eps0, "F19")
+            dRdE_c = DMU.dRdE_millicharge(E, m_x, eps0, "C12")
+            return mass_f * dRdE_f + mass_c * dRdE_c
 
-# --- Plotting ---
-pl.figure(figsize=(7, 5))
-pl.loglog(E_list, rate_xe, lw=2, ls='--', label='Xenon', color='blue')
-pl.loglog(E_list, rate_ar, lw=2, ls=':', label='Argon', color='green')
-pl.loglog(E_list, rate_c3f8, lw=2, label='C₃F₈', color='red')
+        R_exp, _ = quad(integrand, threshold, 200.0, epsabs=1e-6, epsrel=1e-3)
+        sigma = 2.3 / (R_exp * exposure) if R_exp > 1e-10 else np.nan
+        sigma_vals.append(sigma)
+        print(f"m_x: {m_x:.2f} GeV, R_exp: {R_exp:.4e}, sigma: {sigma:.4e}")
+    except Exception as e:
+        print(f"Error at m_x = {m_x:.2f} GeV: {e}")
+        sigma_vals.append(np.nan)
 
-pl.xlabel(r'$E_R$ [keV]')
-pl.ylabel(r'$\mathrm{d}R/\mathrm{d}E_R$ [keV$^{-1}$ kg$^{-1}$ day$^{-1}$]')
-pl.legend(loc='best')
-pl.grid(True, which="both", ls="--", lw=0.5)
+# --- Convert sigma to eps limits ---
+# If sigma ∝ eps², then eps ∝ sqrt(sigma)
+eps_vals = [10*eps0 * np.sqrt(s) if s is not np.nan else np.nan for s in sigma_vals]
 
-pl.tick_params(axis='both', which='both', direction='in', top=True, right=True)
-pl.minorticks_on()
-pl.tick_params(axis='both', which='minor', length=4, color='gray')
-pl.tick_params(axis='both', which='major', length=7)
+# --- Plot ε vs mχ ---
+plt.figure(figsize=(7, 5))
+plt.loglog(m_x_vals, eps_vals, color='darkred', linewidth=2, label=r"PICO-60 C$_3$F$_8$")
 
-ax = pl.gca()
-ax.set_xscale('log')
-ax.set_yscale('log')
-#ax.set_ylim(1e-8, None)
-ax.yaxis.set_minor_locator(LogLocator(base=10.0, subs=np.arange(2, 10)*0.1, numticks=100))
-ax.tick_params(axis='y', which='minor', length=4, width=0.8)
-ax.tick_params(axis='y', which='major', length=6, width=1.2)
+plt.xlabel(r"DM Mass $m_\chi$ [GeV]")
+plt.ylabel(r"Millicharge Coupling $\varepsilon$")
+plt.grid(True, which="both", ls="--", lw=0.5)
+plt.title("Millicharge Limit", loc='left')
+plt.legend()
+plt.tight_layout()
 
-pl.title("Anapolemoment")
-pl.tight_layout()
-pl.savefig("anapolemoment.png")
-pl.show()
+# Axis ticks
+plt.tick_params(axis='both', which='both', direction='in', top=True, right=True)
+plt.minorticks_on()
+plt.tick_params(axis='both', which='minor', length=4, color='gray')
+plt.tick_params(axis='both', which='major', length=7)
+
+plt.savefig("Epsilon_vs_Mass_Millicharge.png")
+plt.show()
