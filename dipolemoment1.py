@@ -27,10 +27,11 @@ def dRdE_electric(E, m_x, d_x, target):
 
     cp = [E * 0.0 for _ in range(20)]
     cn = [E * 0.0 for _ in range(20)]
+    
 
     # 𝒪₁₁: EDM operator ~ 2ed/q² on both p and n
     cp[10] = 2.0 * e * d_x / q2
-    cn[10] = 2.0 * e * d_x / q2
+    
 
     return DMU.dRdE_NREFT(E, m_x, cp, cn, target)
 

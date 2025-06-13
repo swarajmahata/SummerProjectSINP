@@ -19,19 +19,25 @@ def dRdE_anapole_spin_corrected(E, m_x, c_A, target):
     cp = np.zeros(20)
     cn = np.zeros(20)
 
-    # 𝒪₈: velocity-dependent charge operator
-    cp[7] = -2.0 * e * c_A
+    #Operator 8
+    cp[7] = -2.5*e*c_A
+    
+    
+    
+    #Operator 9
+    cp[8] = -gp*c_A
+    cn[8] = -gn*c_A
 
-    # 𝒪₉: spin-dependent magnetic operator
-    if target in ["F19"]:  # unpaired proton
-        cp[8] = -gp * c_A
-        cn[8] = 0.0
-    elif target in ["Xe129", "Xe131"]:     # unpaired neutron
-        cp[8] = 0.0
-        cn[8] = -gn * c_A 
-    else:
-        cp[8] = 0.0
-        cn[8] = 0.0
+    # # 𝒪₉: spin-dependent magnetic operator
+    # if target in ["F19"]:  # unpaired proton
+    #     cp[8] = -gp * c_A
+    #     cn[8] = 0.0
+    # elif target in ["Xe129", "Xe131"]:     # unpaired neutron
+    #     cp[8] = 0.0
+    #     cn[8] = -gn * c_A
+    # else:
+    #     cp[8] = 0.0
+    #     cn[8] = 0.0
 
     return DMU.dRdE_NREFT(E, m_x, cp, cn, target)
 
@@ -39,11 +45,9 @@ def dRdE_anapole_spin_corrected(E, m_x, c_A, target):
 pl.figure(figsize=(7, 5))
 
 # --- Xenon (natural abundance)
-frac_xe129 = 0.45
-frac_xe131 = 0.55
-rate_xe129 = dRdE_anapole_spin_corrected(E_list, m_x, g_a, "Xe129") 
-rate_xe131 = dRdE_anapole_spin_corrected(E_list, m_x, g_a, "Xe131") 
-rate_xe = frac_xe129 * rate_xe129 + frac_xe131 * rate_xe131
+# --- Xenon ---
+rate_xe = dRdE_anapole_spin_corrected(E_list, m_x, g_a, "Xe131")
+
 pl.loglog(E_list, rate_xe, lw=2, ls='--', label='Xenon (Natural)', color='blue')
 
 # --- Argon (spin-0, no contribution) ---
@@ -54,7 +58,7 @@ pl.loglog(E_list, rate_ar, lw=2, ls=':', label='Argon', color='green')
 mass_f = 0.8084
 mass_c = 0.1916
 rate_f = dRdE_anapole_spin_corrected(E_list, m_x, g_a, "F19") * mass_f
-rate_c = np.zeros_like(E_list)
+rate_c = np.zeros_like(E_list)*mass_c
 rate_c3f8 = rate_c + rate_f
 pl.loglog(E_list, rate_c3f8, lw=2, label='C₃F₈', color='red')
 
