@@ -12,7 +12,7 @@ Avals = {
     "F19": 19
 }
 
-def dRdE_electric(E, m_x, d_x, target):
+def dRdE_electric(E, m_x, d_x, target, j_x=1):
     """
     Return recoil rate for electric dipole DM interaction (via O11 only).
     O11 ~ 2ed / q^2, for both protons and neutrons.
@@ -29,10 +29,12 @@ def dRdE_electric(E, m_x, d_x, target):
     cn = [E * 0.0 for _ in range(20)]
 
     # 𝒪₁₁: EDM operator ~ 2ed/q² on both p and n
-    cp[10] = 2.0 * e * d_x / q2
-    cn[10] = 2.0 * e * d_x / q2
+    cp[18] = 2.0 * e * d_x / q2
+    cn[18] = 2.0 * e * d_x / q2
 
-    return DMU.dRdE_NREFT(E, m_x, cp, cn, target)
+    cp[19] = 2.0 * e * d_x / q2
+    cn[19] = 2.0 * e * d_x / q2
+    return DMU.dRdE_NREFT(E, m_x, cp, cn, target, j_x=1)
 
 # --- Parameters ---
 d_x = 2.8e-8  # GeV^-1 (Electric dipole moment)
@@ -61,7 +63,7 @@ pl.loglog(E_list, rate_c3f8, lw=2, label='C₃F₈', color='red')
 # --- Formatting ---
 pl.xlabel(r'$E_R$ [keV]')
 pl.ylabel(r'$\mathrm{d}R/\mathrm{d}E_R$ [keV$^{-1}$ kg$^{-1}$ day$^{-1}$]')
-pl.title("Electric Dipole Interaction via $𝒪_{11}$", loc='left')
+pl.title("Electric Dipole Interaction ", loc='left')
 pl.legend(loc='best')
 pl.grid(True, which="both", ls="--", lw=0.5)
 
@@ -73,12 +75,12 @@ pl.tick_params(axis='both', which='major', length=7)
 ax = pl.gca()
 ax.set_xscale('log')
 ax.set_yscale('log')
-ax.set_ylim(1e-4, None)
-ax.set_xlim(0.5, None)
+ax.set_ylim(None, None)
+ax.set_xlim(None, None)
 ax.yaxis.set_minor_locator(LogLocator(base=10.0, subs=np.arange(2, 10) * 0.1, numticks=100))
 ax.tick_params(axis='y', which='minor', length=4, width=0.8)
 ax.tick_params(axis='y', which='major', length=6, width=1.2)
 
 pl.tight_layout()
-pl.savefig("electric_dipole_O11_full.png")
+pl.savefig("electric_dipole_O11_spin1 full.png")
 pl.show()

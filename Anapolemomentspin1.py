@@ -14,42 +14,41 @@ gn = -3.83
 # --- Recoil energy range [keV] ---
 E_list = np.logspace(-0.5, 1.2, 100)
 
-def dRdE_anapole_spin_corrected(E, m_x, c_A, target):
+def dRdE_anapole_spin_corrected(E, m_x, c_A, target, j_x = 1):
     """Recoil rate with correct nuclear spin weighting for anapole interactions."""
     cp = np.zeros(20)
     cn = np.zeros(20)
 
-    if target == "F19":
-        # C₃F₈ → unpaired proton → both cp[7] and cp[8] matter
-        cp[7] = -2.0 * e * c_A        # O₈ (proton)
-        cp[8] = -gp * c_A             # O₉ (proton)
-        cn[8] = -gn * c_A             # O₉ (neutron)
-    elif target in ["Xe129", "Xe131"]:
-        # Xenon → unpaired neutron → only neutron operators
-        cn[7] = -2.0 * e * c_A        # O₈ (neutron)
-        cn[8] = -gn * c_A             # O₉ (neutron)
-    else:
-        # Argon and other spin-0 → no contribution
-        pass
+    #Operator 8
+    cp[18] = -2.0*e*c_A
+    
+    
+    
+    #Operator 9
+    cp[19] = -gp*c_A
+    cn[19] = -gn*c_A
 
-    return DMU.dRdE_NREFT(E, m_x, cp, cn, target)
+   
+    return DMU.dRdE_NREFT(E, m_x, cp, cn, target, j_x = 1)
 
 # --- Plot Setup ---
 pl.figure(figsize=(7, 5))
 
 # --- Xenon (natural abundance)
+# --- Xenon ---
 rate_xe = dRdE_anapole_spin_corrected(E_list, m_x, g_a, "Xe131")
-pl.loglog(E_list, rate_xe, lw=2, ls='--', label='Xenon (Xe131)', color='blue')
 
-# --- Argon (spin-0, no contribution)
+pl.loglog(E_list, rate_xe, lw=2, ls='--', label='Xenon (Natural)', color='blue')
+
+# --- Argon (spin-0, no contribution) ---
 rate_ar = dRdE_anapole_spin_corrected(E_list, m_x, g_a, "Ar40")
-pl.loglog(E_list, rate_ar, lw=2, ls=':', label='Argon (Ar40)', color='green')
+pl.loglog(E_list, rate_ar, lw=2, ls=':', label='Argon', color='green')
 
-# --- C₃F₈ = 80.84% F + 19.16% C (C has no contribution)
+# --- C₃F₈ (your original version)
 mass_f = 0.8084
 mass_c = 0.1916
 rate_f = dRdE_anapole_spin_corrected(E_list, m_x, g_a, "F19") * mass_f
-rate_c = np.zeros_like(E_list) * mass_c
+rate_c = np.zeros_like(E_list)*mass_c
 rate_c3f8 = rate_c + rate_f
 pl.loglog(E_list, rate_c3f8, lw=2, label='C₃F₈', color='red')
 
@@ -67,13 +66,13 @@ pl.tick_params(axis='both', which='major', length=7)
 ax = pl.gca()
 ax.set_xscale('log')
 ax.set_yscale('log')
-ax.set_ylim(1e-11, None)
-ax.set_xlim(0.5, None)
+ax.set_ylim(None, None)
+ax.set_xlim(None, None)
 ax.yaxis.set_minor_locator(LogLocator(base=10.0, subs=np.arange(2, 10)*0.1, numticks=100))
 ax.tick_params(axis='y', which='minor', length=4, width=0.8)
 ax.tick_params(axis='y', which='major', length=6, width=1.2)
 
-pl.title("Anapole Interaction with Spin-Corrected Operators")
+pl.title("Anapole Interaction with Spin-Corrected Operators spin 1")
 pl.tight_layout()
-pl.savefig("anapolemoment_spin_corrected_full.png")
+pl.savefig("anapolemoment_spin_corrected_fixed_xenon")
 pl.show()
